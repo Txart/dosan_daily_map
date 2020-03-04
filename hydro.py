@@ -225,14 +225,8 @@ def hydrology(solve_mode, nx, ny, dx, dy, days, ele, phi_initial, catchment_mask
                                                              
     #********Finite volume computation******************
     for d in range(days):
-        
-        if type(P) == type(ele): # assume it is a numpy array
-            source.setValue((P[d]-ET[d])* .001 *np.ones(ny*nx))                         # source/sink, in mm/day. The factor of 10^-3 takes into account that there are 100 x 100 m^2 in one pixel
-            print "(d,P) = ", (d, (P[d]-ET[d])* 10.)
-        else:
-            source.setValue((P-ET)* 10. *np.ones(ny*nx))
-            print "(d,P) = ", (d, (P-ET)* 10.)
-        
+        source.setValue((P[d]-ET[d])* .001 *np.ones(ny*nx))                         # source/sink, in mm/day. The factor of 10^-3 takes into account that there are 100 x 100 m^2 in one pixel
+        print("(d, P - ET) = ", (d, (P[d]-ET[d])* 10.))
         if plotOpt and d!= 0:
            # print "one more cross-section plot"
            plot_line_of_peat(phi.value.reshape(ny,nx), y_value=y_value, title="cross-section", color='cornflowerblue', nx=nx, ny=ny, label=d)
@@ -267,7 +261,7 @@ def hydrology(solve_mode, nx, ny, dx, dy, days, ele, phi_initial, catchment_mask
 
         
         if (D.value<0.).any():
-                print "Some value in D is negative!"
+                print("Some value in D is negative!")
 
         # For some plots
         avg_wt.append(np.average(phi.value-ele))
@@ -282,10 +276,10 @@ def hydrology(solve_mode, nx, ny, dx, dy, days, ele, phi_initial, catchment_mask
         peat_vol_weights = utilities.PeatV_weight_calc(np.array(~dr * catchment_mask * not_peat, dtype=int))
         dry_peat_volume = utilities.PeatVolume(peat_vol_weights, (ele-phi.value).reshape(ny,nx))
         cumulative_Vdp = cumulative_Vdp + dry_peat_volume
-        print "avg_wt  = ", np.average(phi.value-ele)
+        print("avg_wt  = ", np.average(phi.value-ele))
 #        print "wt drained = ", (phi.value - ele).reshape(ny,nx)[track_WT_drained_area]
 #        print "wt not drained = ", (phi.value - ele).reshape(ny,nx)[track_WT_notdrained_area]
-        print "Cumulative vdp = ", cumulative_Vdp
+        print("Cumulative vdp = ", cumulative_Vdp)
         
     if solve_mode=='steadystate': #solving in steadystate we remove water only at the very end
         if remove_ponding_water:                 
@@ -331,4 +325,4 @@ def hydrology(solve_mode, nx, ny, dx, dy, days, ele, phi_initial, catchment_mask
 #    resulting_phi = phi.value.reshape(ny,nx)
 
 
-    return cumulative_Vdp, wt_track_drained, wt_track_notdrained, avg_wt
+    return (phi.value - ele).reshape(ny,nx)

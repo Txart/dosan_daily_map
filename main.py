@@ -26,7 +26,7 @@ Parse command-line arguments
 """
 parser = argparse.ArgumentParser(description='Run hydro without any optimization.')
 
-parser.add_argument('-d','--days', default=366, help='(int) Number of outermost iterations of the fipy solver, be it steadystate or transient. Default=10.', type=int)
+parser.add_argument('-d','--days', default=3, help='(int) Number of outermost iterations of the fipy solver, be it steadystate or transient. Default=10.', type=int)
 parser.add_argument('-b','--nblocks', default=0, help='(int) Number of blocks to locate. Default=5.', type=int)
 parser.add_argument('-n','--niter', default=1, help='(int) Number of repetitions of the whole computation. Default=10', type=int)
 args = parser.parse_args()
@@ -159,7 +159,7 @@ for i in range(0,N_ITER):
     if retrieve_transient_phi_sol_from_pickled:
         with open(r"pickled/transient_phi_sol.pkl", 'r') as f:
             phi_ini = pickle.load(f)
-        print "transient phi solution loaded as initial condition"
+        print("transient phi solution loaded as initial condition")
         
     else:
         phi_ini = ele + HINI #initial h (gwl) in the compartment.
@@ -174,7 +174,7 @@ for i in range(0,N_ITER):
     
     dry_peat_volume, wt_track_drained, wt_track_notdrained, avg_wt_over_time = hydro.hydrology('transient', nx, ny, dx, dy, DAYS, ele, phi_ini, catchment_mask, wt_canal_arr, boundary_arr,
                                                       peat_type_mask=peat_type_masked, httd=h_to_tra_and_C_dict, tra_to_cut=tra_to_cut, sto_to_cut=sto_to_cut,
-                                                      diri_bc=DIRI_BC, neumann_bc = None, plotOpt=False, remove_ponding_water=True,
+                                                      diri_bc=DIRI_BC, neumann_bc = None, plotOpt=True, remove_ponding_water=True,
                                                       P=P, ET=ET, dt=TIMESTEP)
     
     water_blocked_canals = sum(np.subtract(wt_canals[1:], oWTcanlist[1:]))
@@ -212,9 +212,9 @@ if DAYS > 300:
            output_file.write( "\n" + str(wt_track_drained[i]) + " " + str(wt_track_notdrained[i]) + " " + str(avg_wt_over_time[i]))
 
 plt.figure()
-plt.plot(range(0,DAYS), wt_track_drained, label='close to drained')
-plt.plot(range(0,DAYS), wt_track_notdrained, label='away from drained')
-plt.plot(range(0,DAYS), avg_wt_over_time, label='average')
+plt.plot(list(range(0,DAYS)), wt_track_drained, label='close to drained')
+plt.plot(list(range(0,DAYS)), wt_track_notdrained, label='away from drained')
+plt.plot(list(range(0,DAYS)), avg_wt_over_time, label='average')
 plt.xlabel('time(days)'); plt.ylabel('WTD (m)')
 plt.legend()
 plt.show()

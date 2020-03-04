@@ -1,1 +1,0 @@
-# dosan_daily_map

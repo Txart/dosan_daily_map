@@ -54,9 +54,15 @@ def peat_hydrol_properties(x, unit='g/cm3', var='bd', ptype='A'):
         ptype=np.repeat(ptype, np.shape(x)[0])        
     vgen = np.zeros((np.size(x),4))
     Ksat = np.zeros((np.size(x)))
-    wcont = lambda x, (a0, a1, a2): a0 + a1*x + a2*x**2.
-    van_g = lambda pot, *p:   p[1] + (p[0] - p[1]) / (1. + (p[2] * pot) **p[3]) **(1. - 1. / p[3])   
-    K = lambda x, (a0, a1): 10.**(a0 + a1*x) / 100.   # to m/s   
+    # wcont = lambda x, (a0, a1, a2): a0 + a1*x + a2*x**2. py2 version
+    # van_g = lambda pot, *p:   p[1] + (p[0] - p[1]) / (1. + (p[2] * pot) **p[3]) **(1. - 1. / p[3])   
+    # K = lambda x, (a0, a1): 10.**(a0 + a1*x) / 100.   # to m/s 
+    def wcont(x, params):
+        return params[0] + params[1]*x + params[2]*x**2.
+    def van_g(pot, *p):
+        return p[1] + (p[0] - p[1]) / (1. + (p[2] * pot) **p[3]) **(1. - 1. / p[3])
+    def K(x, params):
+        return 10.**(params[0] + params[1]*x) / 100.   # to m/s 
     
     potentials =np.array([0.01, 10.,32., 100.,1000.,10000.,15000. ])
     wc = (np.array([wcont(x,prs['pF0']), pF1(x), wcont(x,prs['pF1.5']), wcont(x,prs['pF2']),
@@ -89,7 +95,7 @@ def wrc(pF, x=None, var=None):
     """
     if type(pF) is dict: #dict input
         #Ts, Tr, alfa, n =pF['ThetaS'], pF['ThetaR'], pF['alpha'], pF['n']
-        Ts=np.array(pF['ThetaS'].values()); Tr=np.array( pF['ThetaR'].values()); alfa=np.array( pF['alpha'].values()); n=np.array( pF['n'].values())
+        Ts=np.array(list(pF['ThetaS'].values())); Tr=np.array( list(pF['ThetaR'].values())); alfa=np.array(list(pF['alpha'].values())); n=np.array(list(pF['n'].values()))
         m= 1.0 -np.divide(1.0,n)
     elif type(pF) is list: #list input
         pF=np.array(pF, ndmin=1) #ndmin=1 needed for indexing to work for 0-dim arrays
@@ -99,7 +105,7 @@ def wrc(pF, x=None, var=None):
         Ts, Tr, alfa, n = pF.T[0], pF.T[1], pF.T[2], pF.T[3]
         m=1.0 - np.divide(1.0,n)
     else:
-        print 'Unknown type in pF'
+        print('Unknown type in pF')
         
     def theta_psi(x): #'Theta-->Psi'
         x=np.minimum(x,Ts) 
@@ -138,7 +144,7 @@ def CWTr(nLyrs, z, dz, pF, Ksat, direction='positive'):
     #--------- Connection between gwl and water storage------------
 
     if direction =='positive':
-        print 'no positive direction available'
+        print('no positive direction available')
         import sys; sys.exit()
         gwl=np.linspace(0.,sum(dz),500)
         sto = [sum(wrc(pF, x = np.minimum(z-g, 0.0))*dz) for g in gwl]     #equilibrium head m                
@@ -244,7 +250,7 @@ def peat_map_interp_functions(Kadjust):
     # Loop through all soil types to construct dictionary h_to_tra
     h_to_tra_and_C_dict = {}
     
-    for peat_type in [i for i in spara.keys() if i != 'gen']:
+    for peat_type in [i for i in list(spara.keys()) if i != 'gen']:
         lenvp=len(spara[peat_type]['vonP top'])    
         vonP = np.ones(nLyrs)*spara[peat_type]['vonP bottom']; vonP[0:lenvp] = spara[peat_type]['vonP top']  # degree of  decomposition, von Post scale
         ptype = spara[peat_type]['peat type bottom']*nLyrs
@@ -284,7 +290,7 @@ def peat_map_h_to_tra(soil_type_mask, gwt, h_to_tra_and_C_dict):
     if soil_type_mask.max() > max(h_to_tra_and_C_dict.keys()):
         raise ValueError('More soil types in the raster than in the parameter dictionary h_to_tra_and_C_dict')
         
-    for soil_type_number, value in h_to_tra_and_C_dict.iteritems():
+    for soil_type_number, value in h_to_tra_and_C_dict.items():
         indices = np.where(soil_type_mask == soil_type_number)
         if np.shape(indices)[1]>0:
             tra[indices] = value['hToTra'](gwt[indices])
@@ -315,7 +321,7 @@ def peat_map_h_to_sto(soil_type_mask, gwt, h_to_tra_and_C_dict):
     if soil_type_mask.max() > max(h_to_tra_and_C_dict.keys()):
         raise ValueError('More soil types in the raster than in the parameter dictionary h_to_tra_and_C_dict')
         
-    for soil_type_number, value in h_to_tra_and_C_dict.iteritems():
+    for soil_type_number, value in h_to_tra_and_C_dict.items():
         indices = np.where(soil_type_mask == soil_type_number)
         if np.shape(indices)[1]>0:
                 sto[indices] = value['C'](gwt[indices])
@@ -325,7 +331,7 @@ def peat_map_h_to_sto(soil_type_mask, gwt, h_to_tra_and_C_dict):
 
 
 
-def getRainfall(rainFile='C:\Users\L1817\Dropbox\PhD\Computation\hydro to Inaki\\rainfall.csv'):
+def getRainfall(rainFile='C:\\Users\L1817\Dropbox\PhD\Computation\hydro to Inaki\\rainfall.csv'):
     df=pd.read_csv(rainFile, names=['Date', 'P mm'], skiprows=1)
     df['Date']= pd.to_datetime(df['Date'])
     df.index= df['Date']

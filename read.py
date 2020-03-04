@@ -27,7 +27,7 @@ def getParams(ParamFile, shname , lrs):
     pF = pF[:nLyrs].to_dict()                                                   #cut the unnecessary layer away
     d={}
     d['profPara']=profPara; d['pF']=pF;     
-    print 'soil para from sheet' , shname   
+    print('soil para from sheet' , shname)
     return d      
 
 

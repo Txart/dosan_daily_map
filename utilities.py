@@ -140,11 +140,11 @@ def PeatVolume(weights, Z):
 
 def print_time_in_mins(time):
     if time >60 and time <3600:
-        print "Time spent: ", time/60.0, "minutes"
+        print("Time spent: ", time/60.0, "minutes")
     elif time >3600:
-        print "Time spent: ", time/60.0, "hours"
+        print("Time spent: ", time/60.0, "hours")
     else:
-        print "Time spent: ", time, "seconds"
+        print("Time spent: ", time, "seconds")
         
    
 def place_dams(originalWT, srfc, block_height, dams_to_add, CNM):
