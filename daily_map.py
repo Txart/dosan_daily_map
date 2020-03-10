@@ -8,13 +8,15 @@ import requests
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import preprocess_data,  utilities, hydro, hydro_utils, read
+import time
 import sys
+import pickle
 if sys.version_info[0] < 3:  # Fork for python2 and python3 compatibility
     from StringIO import StringIO
 else:
     from io import StringIO
-import pickle
+
+import preprocess_data,  utilities, hydro, hydro_utils, read
 
 """
 FUNCTIONS
@@ -38,11 +40,23 @@ def get_day_rainfall(): # WARNING: I DO NOT KNOW WHETHER THIS IS ACTUALLY DAILY 
     df_weather = get_instantaneous_weather_data()
     return float(df_weather['davis_current_observation']['rain_day_in'])
 
+def write_raster_to_disk(raster, out_filename, in_filename=r"data/Strat4/DTM_metres_clip.tif"):
+    import rasterio
+    with rasterio.open(in_filename) as src: #src file is needed to output with the same metadata and attributes
+        profile = src.profile
+    
+    profile['nodata'] = None # overrun nodata value given by input raster
+
+    profile.update(dtype=rasterio.uint8, count=1, compress='lzw')
+
+    with rasterio.open(out_filename, 'w', **profile) as dst:
+        dst.write(raster.astype(rasterio.uint8), 1)
+
 
 """
 GET WEATHER DATA
 """
-P = np.array([get_day_rainfall()]) #array type is to allow for list of precip. Normally, single value is used.
+P = np.array([get_day_rainfall()]) #array type is to allow for list of precip. Usually, single value is used.
 
 """
 READ PREVIOUS WTD
@@ -148,3 +162,5 @@ print('COMPLETED')
 """
 WRITE NEXT WTD and output info to file
 """
+datetime_now = time.strftime("%Y"+"_"+"%m"+"_"+"%d-%H"+"_"+"%M"+"_"+"%S")
+write_raster_to_disk(wtd, out_filename='WTD_' + datetime_now + '.tif')
