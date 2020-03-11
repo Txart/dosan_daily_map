@@ -11,6 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 #import argparse
 import time
+import os
+import pandas as pd
 
 import preprocess_data,  utilities, hydro, hydro_utils, read
 
@@ -26,7 +28,7 @@ Parse command-line arguments
 """
 parser = argparse.ArgumentParser(description='Run hydro without any optimization.')
 
-parser.add_argument('-d','--days', default=3, help='(int) Number of outermost iterations of the fipy solver, be it steadystate or transient. Default=10.', type=int)
+parser.add_argument('-d','--days', default=129, help='(int) Number of outermost iterations of the fipy solver, be it steadystate or transient. Default=10.', type=int)
 parser.add_argument('-b','--nblocks', default=0, help='(int) Number of blocks to locate. Default=5.', type=int)
 parser.add_argument('-n','--niter', default=1, help='(int) Number of repetitions of the whole computation. Default=10', type=int)
 args = parser.parse_args()
@@ -55,9 +57,11 @@ can_rst_fn = preprocessed_datafolder + r"/canals_clip.tif"
 #land_use_rst_fn = preprocessed_datafolder + r"/Landcover2017_clip.tif" # Not used
 peat_depth_rst_fn = preprocessed_datafolder + r"/Peattypedepth_clip.tif" # peat depth, peat type in the same raster
 #params_fn = r"/home/inaki/GitHub/dd_winrock/data/params.xlsx" # Luke
-params_fn = r"C:\Users\03125327\github\dd_winrock\data\params.xlsx" # Luke NEW
+# params_fn = r"C:\Users\03125327\github\dd_winrock\data\params.xlsx" # Luke NEW
 #params_fn = r"/home/txart/Programming/GitHub/dd_winrock/data/params.xlsx" # home
 #params_fn = r"/homeappl/home/urzainqu/dd_winrock/data/params.xlsx" # CSC
+absolute_path_datafolder = os.path.abspath('./data')
+params_fn = absolute_path_datafolder + "/params.xlsx" # General
 
 
 if 'CNM' and 'cr' and 'c_to_r_list' not in globals():
@@ -66,7 +70,7 @@ if 'CNM' and 'cr' and 'c_to_r_list' not in globals():
 #else:
 #    print "Canal adjacency matrix and raster loaded from memory."
     
-_ , dem, peat_type_arr, peat_depth_arr = preprocess_data.read_preprocess_rasters(can_rst_fn, dem_rst_fn, peat_depth_rst_fn, peat_depth_rst_fn)
+_, _, dem, peat_type_arr, peat_depth_arr = preprocess_data.read_preprocess_rasters(dem_rst_fn, can_rst_fn, dem_rst_fn, peat_depth_rst_fn, peat_depth_rst_fn)
 
 PARAMS_df = preprocess_data.read_params(params_fn)
 BLOCK_HEIGHT = PARAMS_df.block_height[0]; CANAL_WATER_LEVEL = PARAMS_df.canal_water_level[0]
@@ -115,7 +119,7 @@ n_canals = len(c_to_r_list)
 # HANDCRAFTED WATER LEVEL IN CANALS. CHANGE WITH MEASURED, IDEALLY.
 oWTcanlist = [x - CANAL_WATER_LEVEL for x in srfcanlist]
 
-hand_made_dams = True # compute performance of cherry-picked locations for dams.
+hand_made_dams = False # compute performance of cherry-picked locations for dams.
 quasi_random = False # Don't allow overlapping blocks
 """
 MonteCarlo
@@ -146,10 +150,15 @@ for i in range(0,N_ITER):
     
     boundary_arr = boundary_mask * (dem - DIRI_BC) # constant Dirichlet value in the boundaries
     
-    P = read.read_precipitation()
-#    P = 0.0
+    # Read P and ET from weather station data.
+    fn_w = absolute_path_datafolder + "/Dayun_weather_1-11-19_12-00_AM_1_Year_1583925430_v2.csv"
+    df_w = pd.read_csv(fn_w, delimiter=',', skiprows=5, engine='python', decimal=',') # thousands reads comma as dot!
+    df_w[['Date','Time', 'Meridiam']] = df_w['Date & Time'].str.split(" ",expand=True,) # split date and time into 2 columns
+    P = df_w.groupby('Date', sort=False)['Rain - mm'].sum().to_numpy()
+    # ET = df_w.groupby('Date', sort=False)['ET - mm'].sum().to_numpy() # This ET is too big! And fluctuates very strangely
+    # P = np.array([0.0]*DAYS)
     ET = ET * np.ones(shape=P.shape)
-#    ET = ET
+    # ET = np.array([ET]*DAYS)
     
     ele = dem * catchment_mask
     
@@ -172,9 +181,9 @@ for i in range(0,N_ITER):
         wt_canal_arr[coords] = wt_canals[canaln] 
     
     
-    dry_peat_volume, wt_track_drained, wt_track_notdrained, avg_wt_over_time = hydro.hydrology('transient', nx, ny, dx, dy, DAYS, ele, phi_ini, catchment_mask, wt_canal_arr, boundary_arr,
+    wtd = hydro.hydrology('transient', nx, ny, dx, dy, DAYS, ele, phi_ini, catchment_mask, wt_canal_arr, boundary_arr,
                                                       peat_type_mask=peat_type_masked, httd=h_to_tra_and_C_dict, tra_to_cut=tra_to_cut, sto_to_cut=sto_to_cut,
-                                                      diri_bc=DIRI_BC, neumann_bc = None, plotOpt=True, remove_ponding_water=True,
+                                                      diri_bc=DIRI_BC, neumann_bc = None, plotOpt=False, remove_ponding_water=True,
                                                       P=P, ET=ET, dt=TIMESTEP)
     
     water_blocked_canals = sum(np.subtract(wt_canals[1:], oWTcanlist[1:]))

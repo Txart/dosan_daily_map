@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import time
 import sys
 import pickle
+import os
 if sys.version_info[0] < 3:  # Fork for python2 and python3 compatibility
     from StringIO import StringIO
 else:
@@ -40,29 +41,51 @@ def get_day_rainfall(): # WARNING: I DO NOT KNOW WHETHER THIS IS ACTUALLY DAILY 
     df_weather = get_instantaneous_weather_data()
     return float(df_weather['davis_current_observation']['rain_day_in'])
 
+  
+
 def write_raster_to_disk(raster, out_filename, in_filename=r"data/Strat4/DTM_metres_clip.tif"):
     import rasterio
     with rasterio.open(in_filename) as src: #src file is needed to output with the same metadata and attributes
         profile = src.profile
-    
-    profile['nodata'] = None # overrun nodata value given by input raster
+    _, wtd_old , _, _, _ = preprocess_data.read_preprocess_rasters(in_filename, in_filename, in_filename, in_filename, in_filename)
 
-    profile.update(dtype=rasterio.uint8, count=1, compress='lzw')
+    
+    profile.update(nodata = None) # overrun nodata value given by input raster
+    profile.update(width = wtd_old.shape[1]) # Shape of rater is changed for hydro simulation inside read_preprocess_rasters. Here we take that shape to output consistently.
+    profile.update(height = wtd_old.shape[0])
+    # profile.update(dtype='float32', compress='lzw') # What compression to use?
+    profile.update(dtype='float32') # instead of 64. To save space, we don't need so much precision. float16 is not supported by GDAL, check: https://github.com/mapbox/rasterio/blob/master/rasterio/dtypes.py
 
     with rasterio.open(out_filename, 'w', **profile) as dst:
-        dst.write(raster.astype(rasterio.uint8), 1)
+        dst.write(raster.astype(dtype='float32'), 1)
+        
+    return 0
 
 
 """
 GET WEATHER DATA
 """
-P = np.array([get_day_rainfall()]) #array type is to allow for list of precip. Usually, single value is used.
+P = np.array([get_day_rainfall()]) * 25.4  # From inches to mm. array type is to allow for list of precip. Usually, single value is used.
 
 """
 READ PREVIOUS WTD
+and DEM, peat type and peat depth rasters
 """
-#wtd_pickled_fname = 'wtd.p'
-#wtd_ini = pickle.load(open(wtd_pickled_fname, 'wb'))
+output_folder = r'./WTD'
+absolute_path_datafolder = os.path.abspath('./data')
+relative_datafolder = r"data/Strat4"
+
+list_fn_with_WTD_in_name = [fn for fn in os.listdir(output_folder) if 'WTD' in fn]
+list_fn_with_WTD_in_name.sort()
+wtd_old_fn = output_folder + '/' + list_fn_with_WTD_in_name[-1] # latest file with WTD in its name
+dem_rst_fn = relative_datafolder + r"/DTM_metres_clip.tif"
+can_rst_fn = relative_datafolder + r"/canals_clip.tif"
+peat_depth_rst_fn = relative_datafolder + r"/Peattypedepth_clip.tif" # peat depth, peat type in the same raster
+# params_fn = r"C:\Users\03125327\github\dd_winrock\data\params.xlsx" # Luke NEW
+params_fn = absolute_path_datafolder + "/params.xlsx" 
+
+_, wtd_old , dem, peat_type_arr, peat_depth_arr = preprocess_data.read_preprocess_rasters(wtd_old_fn, can_rst_fn, dem_rst_fn, peat_depth_rst_fn, peat_depth_rst_fn)
+
 
 """
 RUN HYDROLOGICAL MODEL
@@ -70,16 +93,9 @@ RUN HYDROLOGICAL MODEL
 DAYS = 1
 N_BLOCKS = 0
 
-preprocessed_datafolder = r"data/Strat4"
-dem_rst_fn = preprocessed_datafolder + r"/DTM_metres_clip.tif"
-can_rst_fn = preprocessed_datafolder + r"/canals_clip.tif"
-peat_depth_rst_fn = preprocessed_datafolder + r"/Peattypedepth_clip.tif" # peat depth, peat type in the same raster
-params_fn = r"C:\Users\03125327\github\dd_winrock\data\params.xlsx" # Luke NEW
 
 # Generate adjacency matrix, and dictionary. Need to do this every time?
 CNM, cr, c_to_r_list = preprocess_data.gen_can_matrix_and_raster_from_raster(can_rst_fn=can_rst_fn, dem_rst_fn=dem_rst_fn)
-
-_ , dem, peat_type_arr, peat_depth_arr = preprocess_data.read_preprocess_rasters(can_rst_fn, dem_rst_fn, peat_depth_rst_fn, peat_depth_rst_fn)
 
 # Read parameters
 PARAMS_df = preprocess_data.read_params(params_fn)
@@ -140,7 +156,7 @@ if retrieve_transient_phi_sol_from_pickled:
     print("transient phi solution loaded as initial condition")
     
 else:
-    phi_ini = ele + HINI #initial h (gwl) in the compartment.
+    phi_ini = ele + 0.0 #initial h (gwl) in the compartment.
     phi_ini = phi_ini * catchment_mask
        
 wt_canal_arr = np.zeros((ny,nx)) # (nx,ny) array with wt canal height in corresponding nodes
@@ -163,4 +179,5 @@ print('COMPLETED')
 WRITE NEXT WTD and output info to file
 """
 datetime_now = time.strftime("%Y"+"_"+"%m"+"_"+"%d-%H"+"_"+"%M"+"_"+"%S")
-write_raster_to_disk(wtd, out_filename='WTD_' + datetime_now + '.tif')
+out_filename= output_folder + '/WTD_' + datetime_now + '.tif'
+write_raster_to_disk(wtd, out_filename=out_filename)

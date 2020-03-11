@@ -225,8 +225,8 @@ def hydrology(solve_mode, nx, ny, dx, dy, days, ele, phi_initial, catchment_mask
                                                              
     #********Finite volume computation******************
     for d in range(days):
-        source.setValue((P[d]-ET[d])* .001 *np.ones(ny*nx))                         # source/sink, in mm/day. The factor of 10^-3 takes into account that there are 100 x 100 m^2 in one pixel
-        print("(d, P - ET) = ", (d, (P[d]-ET[d])* 10.))
+        source.setValue((P[d]-ET[d])* .001 *np.ones(ny*nx))                         # source/sink. P and ET are in mm/day. The factor of 10^-3 converst to m/day. It does not matter that there are 100 x 100 m^2 in one pixel
+        print("(d, P - ET) = ", (d, (P[d]-ET[d])))
         if plotOpt and d!= 0:
            # print "one more cross-section plot"
            plot_line_of_peat(phi.value.reshape(ny,nx), y_value=y_value, title="cross-section", color='cornflowerblue', nx=nx, ny=ny, label=d)
