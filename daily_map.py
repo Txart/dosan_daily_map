@@ -75,7 +75,7 @@ output_folder = r'./WTD'
 absolute_path_datafolder = os.path.abspath('./data')
 relative_datafolder = r"data/Strat4"
 
-list_fn_with_WTD_in_name = [fn for fn in os.listdir(output_folder) if 'WTD' in fn]
+list_fn_with_WTD_in_name = [fn for fn in os.listdir(output_folder) if fn[-4:] == '.tif']
 list_fn_with_WTD_in_name.sort()
 wtd_old_fn = output_folder + '/' + list_fn_with_WTD_in_name[-1] # latest file with WTD in its name
 dem_rst_fn = relative_datafolder + r"/DTM_metres_clip.tif"
@@ -156,7 +156,7 @@ if retrieve_transient_phi_sol_from_pickled:
     print("transient phi solution loaded as initial condition")
     
 else:
-    phi_ini = ele + 0.0 #initial h (gwl) in the compartment.
+    phi_ini = ele + wtd_old #initial h (gwl) in the compartment.
     phi_ini = phi_ini * catchment_mask
        
 wt_canal_arr = np.zeros((ny,nx)) # (nx,ny) array with wt canal height in corresponding nodes
@@ -168,7 +168,7 @@ for canaln, coords in enumerate(c_to_r_list):
 
 wtd = hydro.hydrology('transient', nx, ny, dx, dy, DAYS, ele, phi_ini, catchment_mask, wt_canal_arr, boundary_arr,
                       peat_type_mask=peat_type_masked, httd=h_to_tra_and_C_dict, tra_to_cut=tra_to_cut, sto_to_cut=sto_to_cut,
-                      diri_bc=DIRI_BC, neumann_bc = None, plotOpt=True, remove_ponding_water=True,
+                      diri_bc=DIRI_BC, neumann_bc = None, plotOpt=False, remove_ponding_water=True,
                       P=P, ET=ET, dt=TIMESTEP)
 
 
