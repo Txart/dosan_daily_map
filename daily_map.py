@@ -180,4 +180,4 @@ WRITE NEXT WTD and output info to file
 """
 datetime_now = time.strftime("%Y"+"_"+"%m"+"_"+"%d-%H"+"_"+"%M"+"_"+"%S")
 out_filename= output_folder + '/WTD_' + datetime_now + '.tif'
-write_raster_to_disk(wtd, out_filename=out_filename)
+write_raster_to_disk(wtd, out_filename=out_filename, in_filename=wtd_old_fn)
