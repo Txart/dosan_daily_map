@@ -14,7 +14,7 @@ conda create -n [name of environment] -c conda-forge python=3 numpy scipy raster
 
 ### Windows 10
 ```
-conda create -n [name of environment] -c conda-forge python=3 fipy rasterio pandas xlrd
+conda create -n [name of environment] -c conda-forge python=3 fipy rasterio pandas xlrd requests
 ```
 
 If you're interested in installing it alongside Spyder, only the python 3.6 version works as of March, 2020:
