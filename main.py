@@ -155,7 +155,7 @@ for i in range(0,N_ITER):
     df_w = pd.read_csv(fn_w, delimiter=',', skiprows=5, engine='python', decimal=',') # thousands reads comma as dot!
     df_w[['Date','Time', 'Meridiam']] = df_w['Date & Time'].str.split(" ",expand=True,) # split date and time into 2 columns
     P = df_w.groupby('Date', sort=False)['Rain - mm'].sum().to_numpy()
-    # ET = df_w.groupby('Date', sort=False)['ET - mm'].sum().to_numpy() # This ET is too big! And fluctuates very strangely
+    ET = df_w.groupby('Date', sort=False)['ET - mm'].sum().to_numpy() # This ET is too big! And fluctuates very strangely
     # P = np.array([0.0]*DAYS)
     ET = ET * np.ones(shape=P.shape)
     # ET = np.array([ET]*DAYS)

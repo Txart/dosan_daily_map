@@ -324,5 +324,6 @@ def hydrology(solve_mode, nx, ny, dx, dy, days, ele, phi_initial, catchment_mask
 #    change_in_canals = (ele-phi.value).reshape(ny,nx)*(drmask.value.reshape(ny,nx)) - ((ele-H)*drmask.value).reshape(ny,nx)
 #    resulting_phi = phi.value.reshape(ny,nx)
 
+    phi.updateOld()
 
     return (phi.value - ele).reshape(ny,nx)
