@@ -41,7 +41,14 @@ N_ITER = args.niter
 """
 Read and preprocess data
 """
-
+def read_historic_P_ET(absolute_path_datafolder=os.path.abspath('./data')):   
+    # Read P and ET from weather station data.
+    fn_w = absolute_path_datafolder + "/Dayun_weather_1-11-19_12-00_AM_1_Year_1583925430_v2.csv"
+    df_w = pd.read_csv(fn_w, delimiter=',', skiprows=5, engine='python', decimal=',') # thousands reads comma as dot!
+    df_w[['Date','Time', 'Meridiam']] = df_w['Date & Time'].str.split(" ",expand=True,) # split date and time into 2 columns
+    P = df_w.groupby('Date', sort=False)['Rain - mm'].sum().to_numpy()
+    ET = df_w.groupby('Date', sort=False)['ET - mm'].sum().to_numpy() # This ET is too big! And fluctuates very strangely
+    return P, ET
 
 """ Stratification 2 data version. Remove in the future"""
 #preprocessed_datafolder = r"data/Strat2"
@@ -149,13 +156,9 @@ for i in range(0,N_ITER):
     dx = 1.; dy = 1. # metres per pixel  (Actually, pixel size is 100m x 100m, so all units have to be converted afterwards)
     
     boundary_arr = boundary_mask * (dem - DIRI_BC) # constant Dirichlet value in the boundaries
+
     
-    # Read P and ET from weather station data.
-    fn_w = absolute_path_datafolder + "/Dayun_weather_1-11-19_12-00_AM_1_Year_1583925430_v2.csv"
-    df_w = pd.read_csv(fn_w, delimiter=',', skiprows=5, engine='python', decimal=',') # thousands reads comma as dot!
-    df_w[['Date','Time', 'Meridiam']] = df_w['Date & Time'].str.split(" ",expand=True,) # split date and time into 2 columns
-    P = df_w.groupby('Date', sort=False)['Rain - mm'].sum().to_numpy()
-    ET = df_w.groupby('Date', sort=False)['ET - mm'].sum().to_numpy() # This ET is too big! And fluctuates very strangely
+    P, ET = read_historic_P_ET()
     # P = np.array([0.0]*DAYS)
     ET = ET * np.ones(shape=P.shape)
     # ET = np.array([ET]*DAYS)
