@@ -19,9 +19,6 @@ import preprocess_data,  utilities, hydro, hydro_utils, read
 
 plt.close("all")
 
-"""
-Read general help on main.README.txt
-"""
 
 """
 Parse command-line arguments
@@ -50,23 +47,12 @@ def read_historic_P_ET(absolute_path_datafolder=os.path.abspath('./data')):
     ET = df_w.groupby('Date', sort=False)['ET - mm'].sum().to_numpy() # This ET is too big! And fluctuates very strangely
     return P, ET
 
-""" Stratification 2 data version. Remove in the future"""
-#preprocessed_datafolder = r"data/Strat2"
-#dem_rst_fn = preprocessed_datafolder + r"/lidar_100_resampled_interp.tif"
-#can_rst_fn = preprocessed_datafolder + r"/canal_clipped_resampled_2.tif"
-#peat_type_rst_fn = preprocessed_datafolder + r"/Landcover_clipped.tif"
-#peat_depth_rst_fn = preprocessed_datafolder + r"/peat_depth.tif"
-
-"""Stratification 4  keep this!"""
 preprocessed_datafolder = r"data/Strat4"
 dem_rst_fn = preprocessed_datafolder + r"/DTM_metres_clip.tif"
 can_rst_fn = preprocessed_datafolder + r"/canals_clip.tif"
 #land_use_rst_fn = preprocessed_datafolder + r"/Landcover2017_clip.tif" # Not used
 peat_depth_rst_fn = preprocessed_datafolder + r"/Peattypedepth_clip.tif" # peat depth, peat type in the same raster
-#params_fn = r"/home/inaki/GitHub/dd_winrock/data/params.xlsx" # Luke
-# params_fn = r"C:\Users\03125327\github\dd_winrock\data\params.xlsx" # Luke NEW
-#params_fn = r"/home/txart/Programming/GitHub/dd_winrock/data/params.xlsx" # home
-#params_fn = r"/homeappl/home/urzainqu/dd_winrock/data/params.xlsx" # CSC
+
 absolute_path_datafolder = os.path.abspath('./data')
 params_fn = absolute_path_datafolder + "/params.xlsx" # General
 

@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import time
 import sys
 import pickle
-import os
+from pathlib import Path
 if sys.version_info[0] < 3:  # Fork for python2 and python3 compatibility
     from StringIO import StringIO
 else:
@@ -71,18 +71,18 @@ P = np.array([get_day_rainfall()]) * 25.4  # From inches to mm. array type is to
 READ PREVIOUS WTD
 and DEM, peat type and peat depth rasters
 """
-output_folder = r'./WTD'
-absolute_path_datafolder = os.path.abspath('./data')
-relative_datafolder = r"data/Strat4"
 
-list_fn_with_WTD_in_name = [fn for fn in os.listdir(output_folder) if fn[-4:] == '.tif']
+filenames_df = pd.read_excel('file_pointers.xlsx', header=2, dtype=str)
+
+dem_rst_fn = Path(filenames_df[filenames_df.Content == 'DEM'].Path.values[0])
+can_rst_fn = Path(filenames_df[filenames_df.Content == 'canal_raster'].Path.values[0])
+peat_depth_rst_fn = Path(filenames_df[filenames_df.Content == 'peat_depth_raster'].Path.values[0])
+params_fn = Path(filenames_df[filenames_df.Content == 'parameters'].Path.values[0])
+WTD_folder = Path(filenames_df[filenames_df.Content == 'WTD_input_and_output_folder'].Path.values[0])
+
+list_fn_with_WTD_in_name = [fn for fn in WTD_folder.glob('*.tif')]
 list_fn_with_WTD_in_name.sort()
-wtd_old_fn = output_folder + '/' + list_fn_with_WTD_in_name[-1] # latest file with WTD in its name
-dem_rst_fn = relative_datafolder + r"/DTM_metres_clip.tif"
-can_rst_fn = relative_datafolder + r"/canals_clip.tif"
-peat_depth_rst_fn = relative_datafolder + r"/Peattypedepth_clip.tif" # peat depth, peat type in the same raster
-# params_fn = r"C:\Users\03125327\github\dd_winrock\data\params.xlsx" # Luke NEW
-params_fn = absolute_path_datafolder + "/params.xlsx" 
+wtd_old_fn =  list_fn_with_WTD_in_name[-1] # latest file with WTD in its name
 
 _, wtd_old , dem, peat_type_arr, peat_depth_arr = preprocess_data.read_preprocess_rasters(wtd_old_fn, can_rst_fn, dem_rst_fn, peat_depth_rst_fn, peat_depth_rst_fn)
 
@@ -179,5 +179,5 @@ print('COMPLETED')
 WRITE NEXT WTD and output info to file
 """
 datetime_now = time.strftime("%Y"+"_"+"%m"+"_"+"%d-%H"+"_"+"%M"+"_"+"%S")
-out_filename= output_folder + '/WTD_' + datetime_now + '.tif'
+out_filename=WTD_folder / ('WTD_' + datetime_now + '.tif')
 write_raster_to_disk(wtd, out_filename=out_filename, in_filename=wtd_old_fn)
