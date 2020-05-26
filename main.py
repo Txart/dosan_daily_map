@@ -25,7 +25,7 @@ Parse command-line arguments
 """
 parser = argparse.ArgumentParser(description='Run hydro without any optimization.')
 
-parser.add_argument('-d','--days', default=129, help='(int) Number of outermost iterations of the fipy solver, be it steadystate or transient. Default=10.', type=int)
+parser.add_argument('-d','--days', default=2, help='(int) Number of outermost iterations of the fipy solver, be it steadystate or transient. Default=10.', type=int)
 parser.add_argument('-b','--nblocks', default=0, help='(int) Number of blocks to locate. Default=5.', type=int)
 parser.add_argument('-n','--niter', default=1, help='(int) Number of repetitions of the whole computation. Default=10', type=int)
 args = parser.parse_args()
@@ -177,42 +177,42 @@ for i in range(0,N_ITER):
     
     water_blocked_canals = sum(np.subtract(wt_canals[1:], oWTcanlist[1:]))
     
-    cum_Vdp_nodams = 21088.453521509597
-    print('dry_peat_volume(%) = ', dry_peat_volume/cum_Vdp_nodams * 100. , '\n',
-          'water_blocked_canals = ', water_blocked_canals)
+    # cum_Vdp_nodams = 21088.453521509597
+    # print('dry_peat_volume(%) = ', dry_peat_volume/cum_Vdp_nodams * 100. , '\n',
+    #       'water_blocked_canals = ', water_blocked_canals)
 
-    """
-    Final printings
-    """
-    if quasi_random == True:
-        fname = r'output/results_mc_quasi_3.txt'
-    else:
-        fname = r'output/results_mc_3_cumulative.txt'
-    if N_ITER > 20:
+    # """
+    # Final printings
+    # """
+    # if quasi_random == True:
+    #     fname = r'output/results_mc_quasi_3.txt'
+    # else:
+    #     fname = r'output/results_mc_3_cumulative.txt'
+    # if N_ITER > 20:
         
-        with open(fname, 'a') as output_file:
-            output_file.write(
-                                "\n" + str(i) + "    " + str(dry_peat_volume) + "    "
-                                + str(N_BLOCKS) + "    " + str(N_ITER) + "    " + str(DAYS) + "    "
-                                + str(time.ctime()) + "    " + str(water_blocked_canals)
-                              )
+    #     with open(fname, 'a') as output_file:
+    #         output_file.write(
+    #                             "\n" + str(i) + "    " + str(dry_peat_volume) + "    "
+    #                             + str(N_BLOCKS) + "    " + str(N_ITER) + "    " + str(DAYS) + "    "
+    #                             + str(time.ctime()) + "    " + str(water_blocked_canals)
+    #                           )
 """
 Save WTD data if simulating a year
 """
-fname = r'output/wtd_year_' + str(N_BLOCKS) + '.txt'
-if DAYS > 300:
-   with open(fname, 'a') as output_file:
-       output_file.write("\n %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" +
-                             str(time.ctime()) + " nblocks = " + str(N_BLOCKS) + " ET = " + str(ET[0]) +
-                             '\n' + 'drained notdrained mean'
-                             )
-       for i in range(len(wt_track_drained)): 
-           output_file.write( "\n" + str(wt_track_drained[i]) + " " + str(wt_track_notdrained[i]) + " " + str(avg_wt_over_time[i]))
+# fname = r'output/wtd_year_' + str(N_BLOCKS) + '.txt'
+# if DAYS > 300:
+#    with open(fname, 'a') as output_file:
+#        output_file.write("\n %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" +
+#                              str(time.ctime()) + " nblocks = " + str(N_BLOCKS) + " ET = " + str(ET[0]) +
+#                              '\n' + 'drained notdrained mean'
+#                              )
+#        for i in range(len(wt_track_drained)): 
+#            output_file.write( "\n" + str(wt_track_drained[i]) + " " + str(wt_track_notdrained[i]) + " " + str(avg_wt_over_time[i]))
 
-plt.figure()
-plt.plot(list(range(0,DAYS)), wt_track_drained, label='close to drained')
-plt.plot(list(range(0,DAYS)), wt_track_notdrained, label='away from drained')
-plt.plot(list(range(0,DAYS)), avg_wt_over_time, label='average')
-plt.xlabel('time(days)'); plt.ylabel('WTD (m)')
-plt.legend()
-plt.show()
+# plt.figure()
+# plt.plot(list(range(0,DAYS)), wt_track_drained, label='close to drained')
+# plt.plot(list(range(0,DAYS)), wt_track_notdrained, label='away from drained')
+# plt.plot(list(range(0,DAYS)), avg_wt_over_time, label='average')
+# plt.xlabel('time(days)'); plt.ylabel('WTD (m)')
+# plt.legend()
+# plt.show()
