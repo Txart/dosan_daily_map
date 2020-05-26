@@ -7,7 +7,7 @@ Gets weather data and produces daily WTD predictions for the Dosan area.
 proj_create: Cannot find proj.db
 proj_create: no database context specified
 ```
-It doesn't affect the execution (that I know of), but is a pain in the ass to look at.
+It doesn't affect the execution (that I know of), but is painful to look at.
 To solve this, take a look at: 
 - https://github.com/conda-forge/rasterio-feedstock/issues/123
 - https://gis.stackexchange.com/questions/326968/ogr2ogr-error-1-proj-pj-obj-create-cannot-find-proj-db
