@@ -2,19 +2,13 @@
   "raster_files" : {
     "dem" : "data/Strat4/DTM_metres_clip.tif",
     "canal" : "data/Strat4/new_canal_raster.tif",
-    "peat_depth" : "data/Strat4/Peattypedepth_clip.tif",
+    "peat_depth" : "data/Strat4/Peattypedepth_clip.tif"    
   },
-  "settings" : {
-    "block_height" : 0.4,
-    "canal_water_level" : 1.2,
-    "diri_bc" : 0,
-    "hini" : 0,
-    "P" : 0,
-    "ET" : 3,
-    "timeStep" : 1,
-    "Kadjust" : 1.5
+
+  "others":{ 
+    "parameters" : "data/params.xlsx",
+    "historic_precipitation" : "data/Dayun_weather_1-11-19_12-00_AM_1_Year_1583925430_v2.csv",
+    "output_directory" : "WTD",
+    "precipitation_endpoint" : "url"
   },
-  "historic_precipitation" : "data/Dayun_weather_1-11-19_12-00_AM_1_Year_1583925430_v2.csv",
-  "output_directory" : "WTD",
-  "precipitation_endpoint" : "url",
 }

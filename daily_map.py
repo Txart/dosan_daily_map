@@ -20,6 +20,7 @@ else:
 
 import preprocess_data,  utilities, hydro, hydro_utils, read
 
+#%%
 """
 FUNCTIONS
 """
@@ -170,16 +171,23 @@ HISTORIC_PRECIPITATION = args.histprep
 """
 Read DEM, peat type and peat depth rasters
 """
-filenames_df = pd.read_excel('file_pointers.xlsx', header=2, dtype=str)
+# filenames_df = pd.read_excel('file_pointers.xlsx', header=2, dtype=str)
 
-dem_rst_fn = Path(filenames_df[filenames_df.Content == 'DEM'].Path.values[0])
-can_rst_fn = Path(filenames_df[filenames_df.Content == 'canal_raster'].Path.values[0])
-peat_depth_rst_fn = Path(filenames_df[filenames_df.Content == 'peat_depth_raster'].Path.values[0])
-params_fn = Path(filenames_df[filenames_df.Content == 'parameters'].Path.values[0])
-WTD_folder = Path(filenames_df[filenames_df.Content == 'WTD_input_and_output_folder'].Path.values[0])
-weather_fn = Path(filenames_df[filenames_df.Content == 'historic_precipitation'].Path.values[0])
+# dem_rst_fn = Path(filenames_df[filenames_df.Content == 'DEM'].Path.values[0])
+# can_rst_fn = Path(filenames_df[filenames_df.Content == 'canal_raster'].Path.values[0])
+# peat_depth_rst_fn = Path(filenames_df[filenames_df.Content == 'peat_depth_raster'].Path.values[0])
+# params_fn = Path(filenames_df[filenames_df.Content == 'parameters'].Path.values[0])
+# WTD_folder = Path(filenames_df[filenames_df.Content == 'WTD_input_and_output_folder'].Path.values[0])
+# weather_fn = Path(filenames_df[filenames_df.Content == 'historic_precipitation'].Path.values[0])
 
+filenames_df = pd.read_json('file_pointers.json', dtype=str)
 
+dem_rst_fn = Path(filenames_df['raster_files']['dem'])
+can_rst_fn = Path(filenames_df['raster_files']['canal'])
+peat_depth_rst_fn = Path(filenames_df['raster_files']['peat_depth'])
+params_fn = Path(filenames_df['others']['parameters'])
+WTD_folder = Path(filenames_df['others']['output_directory'])
+weather_fn = Path(filenames_df['others']['historic_precipitation'])
 
 """
 GET WEATHER DATA
