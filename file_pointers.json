@@ -5,10 +5,24 @@
     "peat_depth" : "data/Strat4/Peattypedepth_clip.tif"    
   },
 
-  "others":{ 
-    "parameters" : "data/params.xlsx",
+  "parameters" : {
+    "canal_water_level" : 1.2,
+    "diri_bc" : 0,
+    "hini" : 0,
+    "ET" : 3,
+    "timeStep" : 1,
+    "Kadjust" : 1.5
+  }, 
+  
+  "precipitation" : {
     "historic_precipitation" : "data/Dayun_weather_1-11-19_12-00_AM_1_Year_1583925430_v2.csv",
-    "output_directory" : "WTD",
-    "precipitation_endpoint" : "url"
-  },
+    "precipitation_endpoint" : "https://api.weatherlink.com/v1/NoaaExt.json?user=",
+    "DID" : "001D0A00F65E",
+    "password" : "putri061112",
+    "api_token" : "CF4BCA6F352A46358FAF00E7E9009516"
+  },  
+
+  "input_output" : {  
+    "output_directory" : "WTD"
+  }
 }

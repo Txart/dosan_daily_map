@@ -24,13 +24,7 @@ import preprocess_data,  utilities, hydro, hydro_utils, read
 """
 FUNCTIONS
 """
-def get_instantaneous_weather_data():
-    DID =  '001D0A00F65E' # DEVIDE ID
-    password = 'putri061112'
-    apiToken = 'CF4BCA6F352A46358FAF00E7E9009516'
-    api_url = 'https://api.weatherlink.com/v1/NoaaExt.json?user=' + DID + '&pass=' + password + '&apiToken=' + apiToken
-
-    
+def get_instantaneous_weather_data(api_url):   
     # This is where the request happens
     response = requests.request(method='POST', url=api_url)
     print('HTTP response status code: ', response.status_code)
@@ -39,8 +33,8 @@ def get_instantaneous_weather_data():
  
 
 # df = get_wtd_data(measured_quantity='water_table_1', output_mode='json', n_records=100)
-def get_day_rainfall(): # WARNING: I DO NOT KNOW WHETHER THIS IS ACTUALLY DAILY RAINFALL OR NOT
-    df_weather = get_instantaneous_weather_data()
+def get_day_rainfall(api_url): # WARNING: I DO NOT KNOW WHETHER THIS IS ACTUALLY DAILY RAINFALL OR NOT
+    df_weather = get_instantaneous_weather_data(api_url)
     return float(df_weather['davis_current_observation']['rain_day_in'])
 
 def get_historic_P_ET(f_path):   
@@ -158,7 +152,7 @@ def date_format(date):
     
     return yyyy + '_' + mm + '_' + dd
 
-
+#%%
 """
 Parse command-line arguments
 """
@@ -171,23 +165,32 @@ HISTORIC_PRECIPITATION = args.histprep
 """
 Read DEM, peat type and peat depth rasters
 """
-# filenames_df = pd.read_excel('file_pointers.xlsx', header=2, dtype=str)
+filenames_params_df = pd.read_json('file_pointers.json', dtype=str)
 
-# dem_rst_fn = Path(filenames_df[filenames_df.Content == 'DEM'].Path.values[0])
-# can_rst_fn = Path(filenames_df[filenames_df.Content == 'canal_raster'].Path.values[0])
-# peat_depth_rst_fn = Path(filenames_df[filenames_df.Content == 'peat_depth_raster'].Path.values[0])
-# params_fn = Path(filenames_df[filenames_df.Content == 'parameters'].Path.values[0])
-# WTD_folder = Path(filenames_df[filenames_df.Content == 'WTD_input_and_output_folder'].Path.values[0])
-# weather_fn = Path(filenames_df[filenames_df.Content == 'historic_precipitation'].Path.values[0])
+# rasters
+dem_rst_fn = Path(filenames_params_df['raster_files']['dem'])
+can_rst_fn = Path(filenames_params_df['raster_files']['canal'])
+peat_depth_rst_fn = Path(filenames_params_df['raster_files']['peat_depth'])
 
-filenames_df = pd.read_json('file_pointers.json', dtype=str)
+# input-output folder of WTD rasters
+WTD_folder = Path(filenames_params_df['input_output']['output_directory'])
 
-dem_rst_fn = Path(filenames_df['raster_files']['dem'])
-can_rst_fn = Path(filenames_df['raster_files']['canal'])
-peat_depth_rst_fn = Path(filenames_df['raster_files']['peat_depth'])
-params_fn = Path(filenames_df['others']['parameters'])
-WTD_folder = Path(filenames_df['others']['output_directory'])
-weather_fn = Path(filenames_df['others']['historic_precipitation'])
+# precipitation: historic or required information for API call
+weather_fn = filenames_params_df['precipitation']['historic_precipitation']
+precipitation_endpoint = filenames_params_df['precipitation']['precipitation_endpoint']
+DID = filenames_params_df['precipitation']['DID']
+password = filenames_params_df['precipitation']['password']
+api_token = filenames_params_df['precipitation']['api_token']
+
+api_url = precipitation_endpoint + DID + '&pass=' + password + '&apiToken=' + api_token
+
+# parameters
+CANAL_WATER_LEVEL = float(filenames_params_df['parameters']['canal_water_level'])
+DIRI_BC = float(filenames_params_df['parameters']['diri_bc'])
+HINI = float(filenames_params_df['parameters']['hini'])
+ET = [float(filenames_params_df['parameters']['ET'])] # as for P, the setup allows for daily changing ET
+TIMESTEP = float(filenames_params_df['parameters']['timeStep'])
+KADJUST = float(filenames_params_df['parameters']['Kadjust'])
 
 """
 GET WEATHER DATA
@@ -199,7 +202,7 @@ if HISTORIC_PRECIPITATION:
     dates = [date_format(i) for i in dates] # good format
 
 else:
-    precip = np.array([get_day_rainfall()]) * 25.4  # From inches to mm. array type is to allow for list of precip. Usually, single value is used.
+    precip = np.array([get_day_rainfall(api_url)]) * 25.4  # From inches to mm. array type is to allow for list of precip. Usually, single value is used.
 
 """
 LOOP FOR HISTORICAL PRECIPITATION DATA
@@ -226,13 +229,7 @@ for d, P in enumerate(precip):
     
     # Generate adjacency matrix, and dictionary. Need to do this every time?
     CNM, cr, c_to_r_list = preprocess_data.gen_can_matrix_and_raster_from_raster(can_rst_fn=can_rst_fn, dem_rst_fn=dem_rst_fn)
-    
-    # Read parameters
-    PARAMS_df = preprocess_data.read_params(params_fn)
-    CANAL_WATER_LEVEL = PARAMS_df.canal_water_level[0]
-    DIRI_BC = PARAMS_df.diri_bc[0]; HINI = PARAMS_df.hini[0];
-    ET = np.array([PARAMS_df.ET[0]])
-    TIMESTEP = PARAMS_df.timeStep[0]; KADJUST = PARAMS_df.Kadjust[0]
+
     
     print(">>>>> WARNING, OVERWRITING PEAT DEPTH")
     peat_depth_arr[peat_depth_arr < 2.] = 2.
