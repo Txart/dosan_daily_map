@@ -202,8 +202,10 @@ if HISTORIC_PRECIPITATION:
     dates = [date_format(i) for i in dates] # good format
 
 else:
-    precip = np.array([get_day_rainfall(api_url)]) * 25.4  # From inches to mm. array type is to allow for list of precip. Usually, single value is used.
-
+    try:
+        precip = np.array([get_day_rainfall(api_url)]) * 25.4  # From inches to mm. array type is to allow for list of precip. Usually, single value is used.
+    except:
+        raise ConnectionError("Could not get precipitation data from the weather station.")
 """
 LOOP FOR HISTORICAL PRECIPITATION DATA
 If only daily precipitation, then precip is a list of length 1.
